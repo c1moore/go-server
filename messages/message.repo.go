@@ -1,21 +1,31 @@
 package messages
 
+import "gorm.io/gorm"
+
 type messageRepo struct {
-	messages []Message
+	db *gorm.DB
 }
 
-func newMessageRepo() *messageRepo {
+func newMessageRepo(db *gorm.DB) *messageRepo {
 	return &messageRepo{
-		messages: make([]Message, 0),
+		db: db,
 	}
 }
 
-func (this *messageRepo) LoadMessages() []Message {
-	return this.messages
+func (repo *messageRepo) LoadMessages() (messages []Message, err error) {
+	result := repo.db.Find(&messages)
+	if result.Error != nil {
+		return messages, result.Error
+	}
+
+	return messages, err
 }
 
-func (this *messageRepo) SaveMessage(m Message) Message {
-	this.messages = append(this.messages, m)
+func (repo *messageRepo) SaveMessage(m *Message) error {
+	result := repo.db.Create(m)
+	if result.Error != nil {
+		return result.Error
+	}
 
-	return m
+	return nil
 }

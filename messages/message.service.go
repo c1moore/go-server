@@ -10,10 +10,10 @@ func newMessageService(r *messageRepo) *messageService {
 	}
 }
 
-func (this *messageService) LoadMessages() []Message {
-	return this.repo.LoadMessages()
+func (srv *messageService) LoadMessages() ([]Message, error) {
+	return srv.repo.LoadMessages()
 }
 
-func (this *messageService) AddMessage(m Message) Message {
-	return this.repo.SaveMessage(m)
+func (srv *messageService) AddMessage(m *Message) error {
+	return srv.repo.SaveMessage(m)
 }

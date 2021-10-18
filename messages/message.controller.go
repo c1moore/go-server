@@ -16,11 +16,20 @@ func newMessageController(service *messageService) *messageController {
 	}
 }
 
-func (this *messageController) GetMessages(context *gin.Context) {
-	context.JSON(http.StatusOK, this.service.LoadMessages())
+func (ctl *messageController) GetMessages(context *gin.Context) {
+	messages, err := ctl.service.LoadMessages()
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"message": err.Error(),
+		})
+
+		return
+	}
+
+	context.JSON(http.StatusOK, messages)
 }
 
-func (this *messageController) PostMessage(context *gin.Context) {
+func (ctl *messageController) PostMessage(context *gin.Context) {
 	var message *Message
 
 	if err := context.BindJSON(&message); err != nil {
@@ -31,5 +40,13 @@ func (this *messageController) PostMessage(context *gin.Context) {
 		return
 	}
 
-	context.JSON(http.StatusOK, this.service.AddMessage(*message))
+	if err := ctl.service.AddMessage(message); err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"message": err.Error(),
+		})
+
+		return
+	}
+
+	context.JSON(http.StatusOK, message)
 }
