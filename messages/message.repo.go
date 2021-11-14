@@ -1,31 +1,62 @@
 package messages
 
-import "gorm.io/gorm"
+import (
+	"context"
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+)
 
 type messageRepo struct {
-	db *gorm.DB
+	collection *mongo.Collection
 }
 
-func newMessageRepo(db *gorm.DB) *messageRepo {
+func newMessageRepo(db *mongo.Database) *messageRepo {
 	return &messageRepo{
-		db: db,
+		collection: db.Collection("messages"),
 	}
 }
 
 func (repo *messageRepo) LoadMessages() (messages []Message, err error) {
-	result := repo.db.Find(&messages)
-	if result.Error != nil {
-		return messages, result.Error
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	cursor, err := repo.collection.Find(ctx, bson.D{})
+	if err != nil {
+		return messages, err
+	}
+
+	defer cursor.Close(ctx)
+
+	err = cursor.All(ctx, &messages)
+
+	if messages == nil {
+		messages = make([]Message, 0)
 	}
 
 	return messages, err
 }
 
 func (repo *messageRepo) SaveMessage(m *Message) error {
-	result := repo.db.Create(m)
-	if result.Error != nil {
-		return result.Error
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	if m.SentAt.IsZero() {
+		m.SentAt = time.Now()
 	}
 
-	return nil
+	m.UpdatedAt = m.SentAt
+
+	res, err := repo.collection.InsertOne(ctx, m)
+	if err != nil {
+		return err
+	}
+
+	if id, ok := res.InsertedID.(primitive.ObjectID); ok {
+		m.ID = &id
+	}
+
+	return err
 }

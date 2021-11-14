@@ -6,8 +6,15 @@ import (
 )
 
 type Environment struct {
-	Database struct {
-		ConnectionUri string `env:"DB_CONNECTION_URI,required=true"`
+	MongoDB struct {
+		ConnectionURI string `env:"MONGODB_URI,required=true"`
+
+		AuthMechanism string `env:"MONGODB_AUTH_MECHANISM,required=true"`
+		AuthDatabase  string `env:"MONGODB_AUTH_DATABASE,required=true"`
+		Username      string `env:"MONGODB_USERNAME,required=true"`
+		Password      string `env:"MONGODB_PASSWORD,required=true"`
+
+		DatabaseName string `env:"MONGODB_DATABASE,required=true"`
 	}
 
 	Extras env.EnvSet

@@ -4,31 +4,20 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
-	"gorm.io/gorm"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type Message struct {
-	ID uuid.UUID `json:"id" gorm:"type:uuid;primary_key;"`
+	ID *primitive.ObjectID `json:"id" bson:"_id,omitempty"`
 
-	Text string `json:"text"`
+	Text string `json:"text" bson:"text"`
 
-	SentAt    time.Time `json:"sentAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
+	SentAt    time.Time `json:"sentAt" bson:"sent_at"`
+	UpdatedAt time.Time `json:"updatedAt" bson:"updated_at"`
 }
 
-func (message *Message) BeforeCreate(db *gorm.DB) error {
-	uuid, err := uuid.NewRandom()
-	if err != nil {
-		return err
-	}
-
-	message.ID = uuid
-
-	return nil
-}
-
-func Init(engine *gin.Engine, db *gorm.DB) {
+func Init(engine *gin.Engine, db *mongo.Database) {
 	repo := newMessageRepo(db)
 	service := newMessageService(repo)
 	ctl := newMessageController(service)

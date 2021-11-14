@@ -6,7 +6,7 @@ up:
 down:
 	docker-compose down --volumes
 
-reset: up down
+reset: down up
 
 start: up
 	go run ./cmd/go-service/
