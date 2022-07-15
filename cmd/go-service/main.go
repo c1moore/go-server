@@ -48,7 +48,7 @@ func main() {
 
 	messages.Init(engine, client.Database(envVars.MongoDB.DatabaseName))
 
-	engine.Run()
+	engine.Run(":8081")
 }
 
 func connectToDatabase(envVars *Environment) (*mongo.Client, error) {
